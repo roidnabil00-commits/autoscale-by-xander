@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search } from "lucide-react";
+import { Search, ArrowRight } from "lucide-react";
 import { supabase } from "@/src/lib/supabase";
 import { useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
 
 type Product = {
   id: string;
@@ -15,6 +14,24 @@ type Product = {
   price: number;
   image_urls: string[];
 };
+
+// Komponen deskripsi yang di-clamp dengan inline style
+// (lebih reliable daripada Tailwind line-clamp di dalam flex container)
+function ClampedDesc({ text }: { text: string }) {
+  return (
+    <p
+      className="text-gray-400 text-xs leading-relaxed mb-2"
+      style={{
+        display: "-webkit-box",
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: "vertical",
+        overflow: "hidden",
+      }}
+    >
+      {text}
+    </p>
+  );
+}
 
 export default function ProductPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -28,7 +45,10 @@ export default function ProductPage() {
 
   const fetchProducts = async () => {
     try {
-      const { data, error } = await supabase.from("products").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("created_at", { ascending: false });
       if (error) throw error;
       if (data) setProducts(data);
     } catch (error) {
@@ -38,9 +58,12 @@ export default function ProductPage() {
     }
   };
 
-  const formatRupiah = (angka: number) => {
-    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(angka);
-  };
+  const formatRupiah = (angka: number) =>
+    new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(angka);
 
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -54,8 +77,10 @@ export default function ProductPage() {
 
         {/* HEADER */}
         <div className="text-center mb-5 sm:mb-8">
-          <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">Katalog AutoScale</p>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">
+          <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">
+            Katalog AutoScale
+          </p>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
             Semua Produk, <span className="text-primary">Siap Pakai</span>
           </h1>
           <p className="text-gray-500 max-w-md mx-auto text-xs sm:text-sm leading-relaxed">
@@ -63,7 +88,7 @@ export default function ProductPage() {
           </p>
         </div>
 
-        {/* SEARCH BAR */}
+        {/* SEARCH */}
         <div className="max-w-lg mx-auto mb-5 sm:mb-8 relative">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -75,7 +100,7 @@ export default function ProductPage() {
           />
         </div>
 
-        {/* GRID PRODUK */}
+        {/* GRID */}
         {isLoading ? (
           <div className="flex justify-center items-center h-52">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
@@ -88,11 +113,13 @@ export default function ProductPage() {
         ) : (
           <>
             <p className="text-xs text-gray-400 mb-3 sm:mb-5">
-              Menampilkan <span className="font-bold text-gray-600">{filteredProducts.length}</span> produk
+              Menampilkan{" "}
+              <span className="font-bold text-gray-600">{filteredProducts.length}</span>{" "}
+              produk
             </p>
 
-            {/* 
-              GRID:
+            {/*
+              Grid:
               - Mobile  : 2 kolom (marketplace style)
               - Tablet  : 3 kolom
               - Desktop : 4 kolom
@@ -108,10 +135,10 @@ export default function ProductPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.35, delay: index * 0.04 }}
                     onClick={() => router.push(`/product/${product.id}`)}
-                    className="bg-white rounded-xl overflow-hidden border border-gray-100 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all flex flex-col cursor-pointer group active:scale-[0.98]"
+                    className="bg-white rounded-xl overflow-hidden border border-gray-100 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all cursor-pointer group active:scale-[0.98] flex flex-col"
                   >
-                    {/* Thumbnail — rasio kotak supaya seragam */}
-                    <div className="aspect-square bg-gray-100 relative overflow-hidden">
+                    {/* Thumbnail kotak */}
+                    <div className="aspect-square bg-gray-100 relative overflow-hidden flex-shrink-0">
                       {thumbnailUrl ? (
                         <img
                           src={thumbnailUrl}
@@ -123,7 +150,7 @@ export default function ProductPage() {
                           Tanpa Gambar
                         </div>
                       )}
-                      {/* Kategori badge di atas gambar */}
+                      {/* Badge kategori */}
                       <div className="absolute top-2 left-2">
                         <span className="bg-white/90 backdrop-blur-sm text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-gray-100 shadow-sm">
                           {product.category || "Digital"}
@@ -131,21 +158,35 @@ export default function ProductPage() {
                       </div>
                     </div>
 
-                    {/* Info Produk — compact untuk mobile */}
-                    <div className="p-2.5 sm:p-4 flex flex-col flex-grow">
-                      <h3 className="font-bold text-gray-900 text-xs sm:text-sm line-clamp-2 group-hover:text-primary transition-colors leading-snug mb-1.5">
+                    {/* Info produk */}
+                    <div className="p-2.5 sm:p-3.5 flex flex-col">
+
+                      {/* Nama — 2 baris max */}
+                      <h3
+                        className="font-bold text-gray-900 text-xs sm:text-sm group-hover:text-primary transition-colors leading-snug mb-1.5"
+                        style={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                        }}
+                      >
                         {product.name}
                       </h3>
-                      {/* Deskripsi — sembunyikan di mobile, tampil di sm+ */}
-                      <p className="hidden sm:block text-gray-400 text-xs line-clamp-2 leading-relaxed mb-3 flex-grow">
-                        {product.description}
-                      </p>
 
-                      <div className="mt-auto flex items-center justify-between gap-1">
+                      {/* Deskripsi — hanya di desktop, 2 baris max */}
+                      {product.description && (
+                        <div className="hidden sm:block">
+                          <ClampedDesc text={product.description} />
+                        </div>
+                      )}
+
+                      {/* Harga & tombol */}
+                      <div className="flex items-center justify-between gap-1 pt-2 border-t border-gray-50 mt-auto">
                         <span className="text-primary font-extrabold text-xs sm:text-sm">
                           {formatRupiah(product.price)}
                         </span>
-                        <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors flex-shrink-0">
+                        <div className="w-6 h-6 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors flex-shrink-0">
                           <ArrowRight size={11} />
                         </div>
                       </div>

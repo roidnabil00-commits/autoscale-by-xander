@@ -102,7 +102,7 @@ export default function Home() {
                 className="relative z-10 w-full max-w-[85%] sm:max-w-[75%] rounded-xl overflow-hidden shadow-2xl border border-gray-100"
               >
                 <img 
-                  src="https://awsimages.detik.net.id/community/media/visual/2025/06/12/timothyronaldd-1749703592196.png?w=600&q=90" 
+                  src="https://i.imgur.com/PlKjsbk.png" 
                   alt="AutoScale Interface" 
                   className="w-full h-auto object-cover"
                 />
@@ -114,7 +114,7 @@ export default function Home() {
                 className="absolute right-4 sm:right-8 top-10 sm:top-16 bg-white/90 backdrop-blur-sm px-4 py-2.5 rounded-xl border border-gray-100 shadow-lg flex items-center gap-2 z-20"
               >
                 <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="text-xs font-bold text-gray-700">Sistem Aktif</span>
+                <span className="text-xs font-bold text-gray-700">Let's Join</span>
               </motion.div>
 
               <div className="absolute bottom-6 sm:bottom-8 text-center text-[10px] sm:text-xs text-gray-400 font-medium z-0 px-4">
