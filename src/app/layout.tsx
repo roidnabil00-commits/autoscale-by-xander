@@ -58,6 +58,15 @@ export const metadata: Metadata = {
   },
 };
 
+import type { Viewport } from "next";
+
+export const viewport: Viewport = {
+  themeColor: "#111827",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1, // Mencegah zoom otomatis saat mengetik di form HP
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
