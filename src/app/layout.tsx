@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "id_ID",
-    url: "https://domain-autoscale-anda.com",
+    url: "https://autoscale-opal.vercel.app/",
     title: "AutoScale - Jembatan Produk Teknologi Bisnis",
     description: "Semua orang bisa membuat software, kami tahu cara menjualnya untuk bisnis Anda.",
     siteName: "AutoScale",

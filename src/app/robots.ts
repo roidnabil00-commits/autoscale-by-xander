@@ -8,6 +8,6 @@ export default function robots(): MetadataRoute.Robots {
       // PERINTAH TEGAS KE GOOGLE: Jangan pernah indeks halaman sistem kita
       disallow: ["/admin/", "/login/", "/api/"], 
     },
-    sitemap: "https://domain-autoscale-anda.com/sitemap.xml",
+    sitemap: "https://autoscale-opal.vercel.app/",
   };
 }
