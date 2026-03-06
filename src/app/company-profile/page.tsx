@@ -7,9 +7,9 @@ import Link from "next/link";
 
 export default function CompanyProfilePage() {
   const banners = [
-    "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1200&auto=format&fit=crop"
+    "https://media-cldnry.s-nbcnews.com/image/upload/rockcms/2025-11/251125-Jakarta-rs-b777f2.jpg",
+    "autoscale.jpg",
+    "https://media-cldnry.s-nbcnews.com/image/upload/rockcms/2025-11/251125-Jakarta-rs-b777f2.jpg"
   ];
 
   const [currentBanner, setCurrentBanner] = useState(0);
@@ -75,7 +75,7 @@ export default function CompanyProfilePage() {
                 AutoScale
               </h1>
               <p className="text-lg md:text-xl text-gray-200 max-w-2xl drop-shadow-md">
-                Platform distribusi software dan produk digital terpercaya untuk bisnis yang ingin tumbuh lebih cepat di era teknologi.
+                Platform distribusi software dan produk digital terpercaya untuk kalian yang ingin tumbuh lebih cepat di era teknologi.
               </p>
             </div>
           </div>
@@ -101,7 +101,7 @@ export default function CompanyProfilePage() {
                 </div>
                 <div>
                   <p className="text-3xl font-bold text-primary mb-1">100%</p>
-                  <p className="text-sm text-gray-500 font-medium">Fokus Pertumbuhan Bisnis</p>
+                  <p className="text-sm text-gray-500 font-medium">Fokus Pertumbuhan Bisnis & Personal</p>
                 </div>
               </div>
             </div>
@@ -170,20 +170,20 @@ export default function CompanyProfilePage() {
       <section className="px-4 lg:px-8 mb-10">
         <div className="container mx-auto max-w-4xl bg-white border border-gray-200 rounded-2xl p-8 flex flex-col md:flex-row items-center gap-8 shadow-sm">
           
-          {/* Wadah Foto Profil */}
-        <div className="w-32 h-32 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 shadow-inner">
-         <img 
-           src="/abil.png" 
-            alt="Bil Xander - CEO AutoScale" 
-              className="w-full h-full object-cover object-center"
-              />
-        </div>
+         <div className="w-32 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 shadow-inner" 
+     style={{ aspectRatio: '1080/1350' }}>
+  <img 
+    src="/abil.jpg" 
+    alt="Bil Xander - CEO AutoScale" 
+    className="w-full h-full object-cover object-center"
+  />
+</div>
 
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-1">Bil Xander</h2>
             <p className="text-primary font-medium text-sm mb-4">CEO & Sales Director, AutoScale</p>
             <p className="text-gray-600 text-sm leading-relaxed">
-              Bil Xander mendirikan AutoScale dengan satu keyakinan sederhana di era AI, semua orang bisa membuat software, tapi tidak semua orang tahu cara menjualnya. AutoScale hadir untuk mengisi gap itu: menjadi jembatan antara produk teknologi terbaik dengan bisnis yang membutuhkannya.
+              Kami mendirikan AutoScale dengan satu keyakinan sederhana di era AI, semua orang bisa membuat software, tapi tidak semua orang tahu cara menjualnya. AutoScale hadir untuk mengisi gap itu: menjadi jembatan antara produk teknologi terbaik dengan bisnis yang membutuhkannya.
             </p>
           </div>
         </div>

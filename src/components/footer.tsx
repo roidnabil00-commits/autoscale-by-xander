@@ -26,7 +26,7 @@ export default function Footer() {
             {/* Badge Kreator - Dibuat berbentuk kotak rapi untuk Mobile */}
             <div className="bg-gray-50 p-3.5 lg:p-4 rounded-xl border border-gray-100 inline-block w-full sm:w-auto">
               <p className="text-[10px] lg:text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Dikembangkan Oleh</p>
-              <p className="text-sm lg:text-base font-bold text-gray-900">Bil Xander <span className="text-gray-400 font-normal">| Xander Systems</span></p>
+              <p className="text-sm lg:text-base font-bold text-gray-900">Team <span className="text-gray-400 font-normal">| Xander Systems</span></p>
             </div>
           </div>
 

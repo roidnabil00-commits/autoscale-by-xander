@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   Plus, Package, Trash2, LogOut, Users, Link as LinkIcon,
   TrendingUp, CheckCircle2, Clock, Image as ImageIcon,
-  DollarSign, Eye, EyeOff, Filter
+  DollarSign, Eye, EyeOff, Filter, Pencil, X, Save
 } from "lucide-react";
 import { destroyAdminSession } from "../../app/actions/auth";
 
@@ -35,6 +35,14 @@ export default function AdminPage() {
 
   // PIN visibility per baris
   const [revealedPins, setRevealedPins] = useState<Record<string, boolean>>({});
+
+  // Edit produk inline
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: "", category: "", description: "", features: "",
+    demo_url: "", price_min: "", price_max: "", image_urls: ["", "", "", "", ""]
+  });
+  const [isEditLoading, setIsEditLoading] = useState(false);
 
   // Filter transaksi
   const [orderFilter, setOrderFilter] = useState<"all" | "pending" | "paid">("all");
@@ -120,6 +128,38 @@ export default function AdminPage() {
 
   const handleDeleteProduct = async (id: string) => {
     if (confirm("Hapus produk ini secara permanen?")) { await supabase.from("products").delete().eq("id", id); fetchProducts(); }
+  };
+
+  const handleStartEdit = (p: Product) => {
+    setEditingProductId(p.id);
+    const imgs = [...(p.image_urls || []), "", "", "", "", ""].slice(0, 5);
+    setEditForm({
+      name: p.name, category: p.category || "", description: p.description || "",
+      features: p.features || "", demo_url: p.demo_url || "",
+      price_min: String(p.price_min || ""), price_max: String(p.price_max || ""),
+      image_urls: imgs
+    });
+  };
+
+  const handleCancelEdit = () => { setEditingProductId(null); };
+
+  const handleSaveEdit = async (id: string) => {
+    const priceMin = parseFloat(editForm.price_min);
+    const priceMax = parseFloat(editForm.price_max);
+    if (priceMax < priceMin) { alert("Harga maksimal tidak boleh lebih kecil dari harga minimal."); return; }
+    const validImages = editForm.image_urls.filter(u => u.trim() !== "");
+    if (validImages.length < 2) { alert("Minimal 2 gambar wajib diisi."); return; }
+    setIsEditLoading(true);
+    const { error } = await supabase.from("products").update({
+      name: editForm.name,
+      category: editForm.category.trim() || "Produk Digital",
+      description: editForm.description, features: editForm.features,
+      demo_url: editForm.demo_url, price_min: priceMin, price_max: priceMax,
+      image_urls: validImages
+    }).eq("id", id);
+    setIsEditLoading(false);
+    if (error) alert("Gagal menyimpan: " + error.message);
+    else { setEditingProductId(null); fetchProducts(); }
   };
 
   const handleAddPartner = async (e: React.FormEvent) => {
@@ -338,14 +378,125 @@ export default function AdminPage() {
                     {products.length === 0 ? (
                       <tr><td colSpan={4} className="py-8 text-center text-sm text-gray-400">Belum ada produk.</td></tr>
                     ) : products.map(p => (
-                      <tr key={p.id} className="border-b hover:bg-gray-50">
-                        <td className="py-3 px-4 font-bold text-xs sm:text-sm text-gray-900">{p.name}</td>
-                        <td className="py-3 px-4"><span className="px-2 py-1 bg-gray-100 text-xs font-medium rounded-md whitespace-nowrap">{p.category || "Produk Digital"}</span></td>
-                        <td className="py-3 px-4 text-xs sm:text-sm font-medium text-primary whitespace-nowrap">{formatHargaRange(p.price_min, p.price_max)}</td>
-                        <td className="py-3 px-4 text-right">
-                          <button onClick={() => handleDeleteProduct(p.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"><Trash2 size={15} /></button>
-                        </td>
-                      </tr>
+                      <>
+                        {/* ROW UTAMA */}
+                        <tr key={p.id} className={`border-b transition-colors ${editingProductId === p.id ? "bg-blue-50/50" : "hover:bg-gray-50"}`}>
+                          <td className="py-3 px-4 font-bold text-xs sm:text-sm text-gray-900">{p.name}</td>
+                          <td className="py-3 px-4">
+                            <span className="px-2 py-1 bg-gray-100 text-xs font-medium rounded-md whitespace-nowrap">{p.category || "Produk Digital"}</span>
+                          </td>
+                          <td className="py-3 px-4 text-xs sm:text-sm font-medium text-primary whitespace-nowrap">
+                            {formatHargaRange(p.price_min, p.price_max)}
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              {editingProductId === p.id ? (
+                                <button onClick={handleCancelEdit} className="text-gray-400 hover:bg-gray-100 p-2 rounded-lg transition-colors">
+                                  <X size={15} />
+                                </button>
+                              ) : (
+                                <button onClick={() => handleStartEdit(p)} className="text-blue-500 hover:bg-blue-50 p-2 rounded-lg transition-colors">
+                                  <Pencil size={15} />
+                                </button>
+                              )}
+                              <button onClick={() => handleDeleteProduct(p.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors">
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+
+                        {/* ROW EDIT INLINE — expand saat diklik */}
+                        {editingProductId === p.id && (
+                          <tr key={`edit-${p.id}`} className="border-b bg-blue-50/30">
+                            <td colSpan={4} className="px-4 py-5">
+                              <div className="space-y-4">
+                                <p className="text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1.5">
+                                  <Pencil size={12} /> Mode Edit — {p.name}
+                                </p>
+
+                                {/* Info Produk */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                  <div>
+                                    <label className="text-xs text-gray-500 font-bold mb-1 block">Nama Produk</label>
+                                    <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                                      className="w-full p-2.5 border rounded-lg text-sm outline-none focus:border-blue-400 bg-white" />
+                                  </div>
+                                  <div>
+                                    <label className="text-xs text-gray-500 font-bold mb-1 block">Kategori</label>
+                                    <input value={editForm.category} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                                      placeholder="Source Code, SaaS, Template..." className="w-full p-2.5 border rounded-lg text-sm outline-none focus:border-blue-400 bg-white" />
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <label className="text-xs text-gray-500 font-bold mb-1 block">Deskripsi</label>
+                                  <textarea value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                                    rows={2} className="w-full p-2.5 border rounded-lg text-sm outline-none focus:border-blue-400 resize-none bg-white" />
+                                </div>
+
+                                <div>
+                                  <label className="text-xs text-gray-500 font-bold mb-1 block">Fitur (pisahkan dengan koma)</label>
+                                  <textarea value={editForm.features} onChange={(e) => setEditForm({ ...editForm, features: e.target.value })}
+                                    rows={2} className="w-full p-2.5 border rounded-lg text-sm outline-none focus:border-blue-400 resize-none bg-white" />
+                                </div>
+
+                                {/* Harga */}
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div>
+                                    <label className="text-xs text-gray-500 font-bold mb-1 block">Harga Mulai</label>
+                                    <input type="number" value={editForm.price_min} onChange={(e) => setEditForm({ ...editForm, price_min: e.target.value })}
+                                      className="w-full p-2.5 border rounded-lg text-sm outline-none focus:border-blue-400 bg-white" />
+                                  </div>
+                                  <div>
+                                    <label className="text-xs text-gray-500 font-bold mb-1 block">Harga Sampai</label>
+                                    <input type="number" value={editForm.price_max} onChange={(e) => setEditForm({ ...editForm, price_max: e.target.value })}
+                                      className="w-full p-2.5 border rounded-lg text-sm outline-none focus:border-blue-400 bg-white" />
+                                  </div>
+                                </div>
+
+                                {/* URL Demo */}
+                                <div>
+                                  <label className="text-xs text-gray-500 font-bold mb-1 block">URL Demo / Tutorial</label>
+                                  <input value={editForm.demo_url} onChange={(e) => setEditForm({ ...editForm, demo_url: e.target.value })}
+                                    placeholder="https://..." className="w-full p-2.5 border rounded-lg text-sm outline-none focus:border-blue-400 bg-white" />
+                                </div>
+
+                                {/* URL Gambar */}
+                                <div>
+                                  <label className="text-xs text-gray-500 font-bold mb-1.5 block flex items-center gap-1">
+                                    <ImageIcon size={12} /> URL Gambar (min. 2)
+                                  </label>
+                                  <div className="space-y-2">
+                                    {editForm.image_urls.map((url, idx) => (
+                                      <input key={idx} type="text" value={url}
+                                        onChange={(e) => {
+                                          const imgs = [...editForm.image_urls];
+                                          imgs[idx] = e.target.value;
+                                          setEditForm({ ...editForm, image_urls: imgs });
+                                        }}
+                                        placeholder={`URL Gambar ${idx + 1}${idx < 2 ? " (wajib)" : " (opsional)"}`}
+                                        className="w-full p-2 border rounded-lg text-sm outline-none focus:border-blue-400 bg-white" />
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {/* Tombol aksi */}
+                                <div className="flex gap-2 pt-1">
+                                  <button onClick={() => handleSaveEdit(p.id)} disabled={isEditLoading}
+                                    className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm flex items-center justify-center gap-2">
+                                    <Save size={15} /> {isEditLoading ? "Menyimpan..." : "Simpan Perubahan"}
+                                  </button>
+                                  <button onClick={handleCancelEdit}
+                                    className="px-4 py-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl font-bold hover:bg-gray-50 transition-colors text-sm flex items-center gap-1.5">
+                                    <X size={14} /> Batal
+                                  </button>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </>
                     ))}
                   </tbody>
                 </table>
