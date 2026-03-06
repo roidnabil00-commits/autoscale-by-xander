@@ -11,12 +11,11 @@ type Product = {
   name: string;
   category: string;
   description: string;
-  price: number;
+  price_min: number;
+  price_max: number;
   image_urls: string[];
 };
 
-// Komponen deskripsi yang di-clamp dengan inline style
-// (lebih reliable daripada Tailwind line-clamp di dalam flex container)
 function ClampedDesc({ text }: { text: string }) {
   return (
     <p
@@ -39,16 +38,12 @@ export default function ProductPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  useEffect(() => { fetchProducts(); }, []);
 
   const fetchProducts = async () => {
     try {
       const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .from("products").select("*").order("created_at", { ascending: false });
       if (error) throw error;
       if (data) setProducts(data);
     } catch (error) {
@@ -59,11 +54,14 @@ export default function ProductPage() {
   };
 
   const formatRupiah = (angka: number) =>
-    new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(angka);
+    new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(angka);
+
+  // Tampilkan range atau harga tunggal
+  const formatHarga = (min: number, max: number) => {
+    if (!min && !max) return "Hubungi Admin";
+    if (!max || min === max) return formatRupiah(min);
+    return `${formatRupiah(min)} – ${formatRupiah(max)}`;
+  };
 
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -77,9 +75,7 @@ export default function ProductPage() {
 
         {/* HEADER */}
         <div className="text-center mb-5 sm:mb-8">
-          <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">
-            Katalog AutoScale
-          </p>
+          <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">Katalog AutoScale</p>
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
             Semua Produk, <span className="text-primary">Siap Pakai</span>
           </h1>
@@ -92,8 +88,7 @@ export default function ProductPage() {
         <div className="max-w-lg mx-auto mb-5 sm:mb-8 relative">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
-            type="text"
-            value={searchQuery}
+            type="text" value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari produk atau kategori..."
             className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all text-sm text-gray-900 shadow-sm"
@@ -113,20 +108,14 @@ export default function ProductPage() {
         ) : (
           <>
             <p className="text-xs text-gray-400 mb-3 sm:mb-5">
-              Menampilkan{" "}
-              <span className="font-bold text-gray-600">{filteredProducts.length}</span>{" "}
-              produk
+              Menampilkan <span className="font-bold text-gray-600">{filteredProducts.length}</span> produk
             </p>
 
-            {/*
-              Grid:
-              - Mobile  : 2 kolom (marketplace style)
-              - Tablet  : 3 kolom
-              - Desktop : 4 kolom
-            */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
               {filteredProducts.map((product, index) => {
                 const thumbnailUrl = product.image_urls?.[0] ?? null;
+                const hargaLabel = formatHarga(product.price_min, product.price_max);
+                const isRange = product.price_min !== product.price_max && product.price_max > 0;
 
                 return (
                   <motion.div
@@ -137,20 +126,16 @@ export default function ProductPage() {
                     onClick={() => router.push(`/product/${product.id}`)}
                     className="bg-white rounded-xl overflow-hidden border border-gray-100 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all cursor-pointer group active:scale-[0.98] flex flex-col"
                   >
-                    {/* Thumbnail kotak */}
-                    <div className="aspect-square bg-gray-100 relative overflow-hidden flex-shrink-0">
+                    {/* Thumbnail */}
+                    <div className="aspect-video bg-gray-100 relative overflow-hidden flex-shrink-0">
                       {thumbnailUrl ? (
                         <img
-                          src={thumbnailUrl}
-                          alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          src={thumbnailUrl} alt={product.name}
+                          className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
-                          Tanpa Gambar
-                        </div>
+                        <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">Tanpa Gambar</div>
                       )}
-                      {/* Badge kategori */}
                       <div className="absolute top-2 left-2">
                         <span className="bg-white/90 backdrop-blur-sm text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-gray-100 shadow-sm">
                           {product.category || "Digital"}
@@ -158,34 +143,39 @@ export default function ProductPage() {
                       </div>
                     </div>
 
-                    {/* Info produk */}
+                    {/* Info */}
                     <div className="p-2.5 sm:p-3.5 flex flex-col">
-
-                      {/* Nama — 2 baris max */}
                       <h3
                         className="font-bold text-gray-900 text-xs sm:text-sm group-hover:text-primary transition-colors leading-snug mb-1.5"
-                        style={{
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                        }}
+                        style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
                       >
                         {product.name}
                       </h3>
 
-                      {/* Deskripsi — hanya di desktop, 2 baris max */}
                       {product.description && (
                         <div className="hidden sm:block">
                           <ClampedDesc text={product.description} />
                         </div>
                       )}
 
-                      {/* Harga & tombol */}
+                      {/* Harga */}
                       <div className="flex items-center justify-between gap-1 pt-2 border-t border-gray-50 mt-auto">
-                        <span className="text-primary font-extrabold text-xs sm:text-sm">
-                          {formatRupiah(product.price)}
-                        </span>
+                        <div className="min-w-0">
+                          {isRange && (
+                            <p className="text-[9px] sm:text-[10px] text-gray-400 font-medium leading-none mb-0.5">mulai dari</p>
+                          )}
+                          <span
+                            className="text-primary font-extrabold leading-tight"
+                            style={{ fontSize: isRange ? "10px" : "12px" }}
+                          >
+                            {isRange ? formatRupiah(product.price_min) : hargaLabel}
+                          </span>
+                          {isRange && (
+                            <p className="text-[9px] sm:text-[10px] text-gray-400 leading-none mt-0.5">
+                              s/d {formatRupiah(product.price_max)}
+                            </p>
+                          )}
+                        </div>
                         <div className="w-6 h-6 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors flex-shrink-0">
                           <ArrowRight size={11} />
                         </div>
